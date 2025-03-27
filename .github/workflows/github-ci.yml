@@ -1,24 +1,39 @@
-stages:
-  - test
-  - build
+name: CI Pipeline with Stages
 
-unit tsst:
-  stage: test
-  script:
-    - echo "test 1"
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
-linter:
-  stage: test
-  script:
-    - echo "test 2"
+jobs:
+  unit_test:
+    name: "Unit Test"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "test 1"
 
-type test:
-  stage: test
-  script:
-    - echo "test 3"
+  linter:
+    name: "Linter"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "test 2"
 
-build:
-  stage: build
-  script:
-    - ./build.sh
-  when: manual
+  type_test:
+    name: "Type Test"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "test 3"
+
+  build:
+    name: "Build"
+    runs-on: ubuntu-latest
+    needs: [unit_test, linter, type_test]  # Зависит от всех тестов
+    if: github.event_name == 'push' || github.event.inputs.manual_trigger == 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - run: chmod +x ./build.sh
+      - run: ./build.sh
